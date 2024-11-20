@@ -60,7 +60,75 @@ class MyAppState extends ChangeNotifier {
 }
 
 // Página inicial do aplicativo
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  // Índice da página selecionada
+  var selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    // Widget da página atual
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        page = Placeholder();
+        break;
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          body: Row(
+            children: [
+              SafeArea(
+                child: NavigationRail(
+                  // Estende a barra de navegação se a largura for maior ou igual a 600
+                  extended: constraints.maxWidth >= 600,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                  ],
+                  // Índice do destino selecionado
+                  selectedIndex: selectedIndex,
+                  // Callback quando um destino é selecionado
+                  onDestinationSelected: (value) {
+                    setState(() {
+                      selectedIndex = value;
+                    });
+                  },
+                ),
+              ),
+              // Expande o contêiner para preencher o espaço disponível
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+}
+
+// Página que gera e exibe palavras aleatórias
+class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Obtém o estado do aplicativo
@@ -68,67 +136,63 @@ class MyHomePage extends StatelessWidget {
     var pair = appState.current;
     final theme = Theme.of(context);
 
-    // Define o ícone com base no estado de favorito
+    // Define o ícone com base na lista de favoritos
     IconData icon;
     appState.favorites.contains(pair)
         ? icon = Icons.favorite
         : icon = Icons.favorite_border;
 
-    return Scaffold(
-      // Estrutura básica da página
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Exibe a palavra aleatória atual em um cartão grande
-            BigCard(pair: pair),
-            SizedBox(
-              height: 10,
-            ),
-            // Botões para interagir com a palavra atual
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Botão para adicionar ou remover a palavra dos favoritos
-                ElevatedButton.icon(
-                  onPressed: () => appState.toggleFavorite(),
-                  label: Text(
-                    "Like",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                    ),
-                  ),
-                  icon: Icon(
-                    icon,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                  style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStatePropertyAll(theme.colorScheme.secondary),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Exibe a palavra aleatória atual em um cartão grande
+          BigCard(pair: pair),
+          SizedBox(
+            height: 10,
+          ),
+          // Botões para interagir com a palavra atual
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => appState.toggleFavorite(),
+                label: Text(
+                  "Like",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
                   ),
                 ),
-                SizedBox(
-                  width: 5,
+                icon: Icon(
+                  icon,
+                  color: theme.colorScheme.onPrimary,
                 ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStatePropertyAll(theme.colorScheme.secondary),
-                  ),
-                  onPressed: () => appState.getNext(),
-                  child: Text(
-                    "Next",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                    ),
+                style: ButtonStyle(
+                  backgroundColor:
+                      WidgetStatePropertyAll(theme.colorScheme.secondary),
+                ),
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor:
+                      WidgetStatePropertyAll(theme.colorScheme.secondary),
+                ),
+                onPressed: () => appState.getNext(),
+                child: Text(
+                  "Next",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
